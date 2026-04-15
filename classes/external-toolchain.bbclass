@@ -167,8 +167,11 @@ FILES:${PN}-doc = ""
 FILES:${PN}-locale = ""
 
 def debug_paths(d):
+    # d.finalize() was removed from DataSmart in bitbake 2.0 (Scarthgap).
+    # createCopy() already produces a datastore whose getVar() applies
+    # overrides on read, so the explicit finalize() is no longer needed
+    # (and raises AttributeError if called).
     l = d.createCopy()
-    l.finalize()
     paths = []
     exclude = [
         l.getVar('datadir', True),
