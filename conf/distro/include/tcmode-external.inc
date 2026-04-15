@@ -136,4 +136,10 @@ GCC_VERSION[vardepvalue] = "${GCC_VERSION}"
 REMOVE_MACRO_PREFIX_MAP = "-fmacro-prefix-map=${WORKDIR}=/usr/src/debug/${PN}/${EXTENDPE}${PV}-${PR}"
 DEBUG_PREFIX_MAP:remove:class-target = "${@'${REMOVE_MACRO_PREFIX_MAP}' if '${GCC_VERSION}' not in ['', 'UNKNOWN'] and [int(v) for v in '${GCC_VERSION}'.split('.')] < [8,0] else ''}"
 
+# canon-prefix-map was introduced in gcc 11 (Scarthgap adds it to
+# DEBUG_PREFIX_MAP unconditionally). Strip it when the external toolchain
+# is older. Unscoped :remove so the sanity check at parse time sees the
+# cleaned value too, not just class-target recipes.
+DEBUG_PREFIX_MAP:remove = "${@'-fcanon-prefix-map' if '${GCC_VERSION}' not in ['', 'UNKNOWN'] and [int(v) for v in '${GCC_VERSION}'.split('.')] < [11,0] else ''}"
+
 BUILDCFG_VARS += "EXTERNAL_TOOLCHAIN EXTERNAL_TARGET_SYS GCC_VERSION"
