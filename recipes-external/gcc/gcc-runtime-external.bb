@@ -10,11 +10,29 @@ EXTRA_OECONF = ""
 COMPILERDEP = ""
 
 python () {
-    lic_deps = d.getVarFlag('do_populate_lic', 'depends', False)
-    d.setVarFlag('do_populate_lic', 'depends', lic_deps.replace('gcc-source-${PV}:do_unpack', ''))
-    cfg_deps = d.getVarFlag('do_configure', 'depends', False)
-    d.setVarFlag('do_configure', 'depends', cfg_deps.replace('gcc-source-${PV}:do_preconfigure', ''))
+    # gcc-shared-source.inc (pulled in via gcc-configure-common.inc) adds
+    # two deps on gcc-source-${PV}: do_unpack and do_preconfigure. Strip
+    # both because we use an external toolchain and the gcc-source
+    # recipe for our PV is not available (Scarthgap ships gcc-source
+    # at its own version, not ours).
+    #
+    # The 'depends' varflag stores the raw bitbake expression with
+    # ${PV} unexpanded; match on the unexpanded form rather than calling
+    # d.expand() on our side.
+    for taskflag, src_task in [
+            ('do_populate_lic', 'do_unpack'),
+            ('do_configure', 'do_preconfigure'),
+    ]:
+        deps = d.getVarFlag(taskflag, 'depends', False) or ''
+        d.setVarFlag(taskflag, 'depends', deps.replace('gcc-source-${PV}:' + src_task, ''))
 }
+
+# gcc-shared-source.inc (Scarthgap) adds a third task,
+# do_deploy_source_date_epoch, whose shell body expects a file that
+# gcc-source would have produced. We don't build gcc from source, so
+# neither the dep nor the task itself is meaningful for the external
+# toolchain. Remove the task entirely.
+deltask do_deploy_source_date_epoch
 
 target_libdir = "${libdir}"
 external_libroot = "${@os.path.realpath('${EXTERNAL_TOOLCHAIN_LIBROOT}').replace(os.path.realpath('${EXTERNAL_TOOLCHAIN}') + '/', '/')}"
