@@ -129,7 +129,7 @@ addhandler toolchain_metadata_setup
 
 GCCVERSION ?= "${@'.'.join('${GCC_VERSION}'.split('.')[:2])}%"
 GCC_VERSION = "${@external_run(d, d.getVar('EXTERNAL_CC'), '-dumpversion').rstrip()}"
-GCC_VERSION_allarch = ""
+GCC_VERSION:allarch = ""
 GCC_VERSION[vardepvalue] = "${GCC_VERSION}"
 
 # macro-prefix-map was introduced in gcc 8
